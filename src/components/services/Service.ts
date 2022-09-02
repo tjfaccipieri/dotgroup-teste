@@ -14,9 +14,12 @@ export const getNewMovies = async(url: string, setMovies: any) =>{
 
 export const getAllGenres = async(url: string, setGenres: any) => {
   const response = await api.get(url)
-  setGenres(response.data.genres)
-  console.log("🚀 ~ file: Service.ts ~ line 18 ~ getAllGenres ~ response.data.genres", response.data.genres)
-  
+  setGenres(response.data.genres)  
+}
+
+export const postFavMovie = async(url: string, favMovie: any, setFavMovie: any) => {
+  const response = await api.post(url, favMovie)
+  setFavMovie(response.data.results)
 }
 
 export const getFavMovies = async(url: string, setFavs:any) => {
@@ -26,6 +29,15 @@ export const getFavMovies = async(url: string, setFavs:any) => {
 
 export const getChartMovies = async(url: string, setChart: any) => {
   const response = await api.get(url)
-  setChart(response.data.results)
-  // get list/{list_id}
+  setChart(response.data.items)
+}
+
+export const postChartMovies = async(url: string, movie: any, setMovie: any) => {
+  const response = await api.post(url, movie)
+  setMovie(response.data)
+  console.log("🚀 ~ file: Service.ts ~ line 39 ~ postChartMovies ~ response.data", response.data)
+}
+
+export const clearChart = async(url: string) => {
+  const response = await api.post(url)
 }

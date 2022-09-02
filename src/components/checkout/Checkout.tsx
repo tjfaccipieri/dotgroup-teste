@@ -1,20 +1,49 @@
 import { Link, useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
+import { useState, useEffect } from 'react';
+import { getChartMovies, clearChart } from '../services/Service';
+import { Trash } from 'phosphor-react';
+import useLocalStorage from 'react-use-localstorage';
 
 export function Checkout() {
-  let navigate = useNavigate();
+  const [movies, setMovies] = useState<any[]>([]);
+
+  function addStorage(){
+    movies.forEach(movie => {
+      movie.price = movie.popularity
+      movie.qtd = 1
+    })
+    localStorage.setItem('filmes', JSON.stringify(movies))
+  }
+  addStorage()
+  let filmes = JSON.parse(localStorage.getItem('filmes') || '{}')
+  
+  async function getChartMoviesList() {
+    await getChartMovies(`list/8215623`, setMovies);
+  }
+
+  async function clearChartMovies() {
+    await clearChart('/list/8215623/clear?confirm=true');
+  }
+
+  useEffect(() => {
+    getChartMoviesList();
+    addStorage()
+  },[]);
+  console.log('oi')
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto px-3 md:px-0">
       <h2 className="text-5xl font-medium mb-12 mt-6">Finalizar Compra</h2>
 
-      <div className="flex container justify-between mx-auto gap-48">
+      <div className="flex container justify-between mx-auto gap-48 flex-col md:flex-row">
         <div className="w-full">
           <form action="" className="flex flex-col gap-8">
             <input
               type="text"
               className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
               placeholder="Nome Completo"
+              required
             />
             <div className="flex gap-4">
               <InputMask
@@ -22,18 +51,21 @@ export function Checkout() {
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="CPF"
                 mask={'999.999.999-99'}
+                required
               />
               <InputMask
                 type="text"
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Celular"
                 mask={'(99)99999-9999'}
+                required
               />
             </div>
             <input
               type="text"
               className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
               placeholder="E-mail"
+              required
             />
             <div className="flex gap-4">
               <InputMask
@@ -41,11 +73,13 @@ export function Checkout() {
                 className="w-2/5 rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="CEP"
                 mask={'99999-999'}
+                required
               />
               <input
                 type="text"
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Endereço"
+                required
               />
             </div>
             <div className="flex gap-4">
@@ -53,11 +87,13 @@ export function Checkout() {
                 type="text"
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Cidade"
+                required
               />
               <input
                 type="text"
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Estado"
+                required
               />
             </div>
           </form>
@@ -65,7 +101,7 @@ export function Checkout() {
         <div className="w-full min-h-[38vh] flex flex-col justify-between">
           <div className="flex flex-col">
             <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
-              <div className="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+              <div className="inline-block min-w-full sm:px-6 lg:px-8">
                 <div className="overflow-hidden">
                   <table className="min-w-full">
                     <thead className="border-b">
@@ -97,48 +133,50 @@ export function Checkout() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          1
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          Mark
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          Otto
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          @mdo
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          2
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          Jacob
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          Thornton
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          @fat
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          3
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          Larry
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          Wild
-                        </td>
-                        <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                          @twitter
-                        </td>
-                      </tr>
+                      {movies.map((movie: any) => {
+                        let price = parseFloat(movie.price) / 100;
+                        let subtotal = price * movie.qtd
+                        let qtd = 1
+
+                        function increase(){
+                          qtd = qtd + 1
+                          console.log(qtd)
+                        }
+                        return (
+                          <tr className="border-b" key={movie.id}>
+                            <td className="whitespace-nowrap text-sm font-medium text-gray-900">
+                              <img
+                                src={`https://image.tmdb.org/t/p/w500${movie.backdrop_path}`}
+                                alt=""
+                                className="w-20 aspect-video object-contain"
+                              />
+                            </td>
+                            <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                              <p className="truncate ">{movie.title}</p>
+                            </td>
+                            <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap flex gap-3">
+                              <button onClick={()=> qtd = qtd - 1}> - </button>
+                              <p>{qtd}</p>
+                              <button onClick={increase}>+</button>
+                            </td>
+                            <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                              <p className="font-bold">
+                                {new Intl.NumberFormat('pt-BR', {
+                                  style: 'currency',
+                                  currency: 'BRL',
+                                }).format(subtotal)}
+                              </p>
+                            </td>
+                            <td>
+                              <Trash
+                                size={20}
+                                weight="fill"
+                                className="hover:text-red-500 cursor-pointer"
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -148,19 +186,22 @@ export function Checkout() {
           <button
             type="button"
             className="px-6
-      py-2.5
-      bg-indigo-700
-      hover:bg-indigo-500
-      text-white
-      font-bold
-      text-lg
-      w-full
-      leading-tight
-      transition
-      duration-150 ease-in-out
-      rounded"
+          py-2.5
+          bg-indigo-700
+          hover:bg-indigo-500
+          text-white
+          font-bold
+          text-lg
+          w-full
+          leading-tight
+          transition
+          duration-150 ease-in-out
+          rounded
+          disabled:bg-indigo-400
+          "
             data-bs-toggle="modal"
             data-bs-target="#exampleModal"
+            onClick={clearChartMovies}
           >
             Finalizar compra
           </button>
@@ -226,3 +267,7 @@ export function Checkout() {
     </div>
   );
 }
+function shouldComponentUpdate() {
+  throw new Error('Function not implemented.');
+}
+
