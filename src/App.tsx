@@ -27,7 +27,7 @@ function App() {
       <Navbar handleFavs={handleFavs} handleChart={handleChart} />
       <Routes>
         <Route path='/' element={<Home  />}  />
-        <Route path='/checkout'  element={<Checkout />} /> 
+        <Route path='/checkout' element={<Checkout />} /> 
       </Routes>
       <Favoritos isOpen={isOpenFavs} />
       <Carrinho isOpen={isOpenChart} />
