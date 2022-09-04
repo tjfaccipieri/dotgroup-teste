@@ -1,10 +1,15 @@
 import { Heart, HeartBreak, ShoppingCart, Star, Trash } from 'phosphor-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { clearChart, getChartMovies } from '../services/Service';
+import { toast } from 'react-toastify';
+import { clearChart, getChartMovies, removeOneMovie } from '../services/Service';
 
 export function Carrinho(props: any) {
   const [movies, setMovies] = useState<any[]>([]);
+  const [removeAll, setRemoveAll] = useState([])
+  const [remove, setRemove] = useState<any>({
+    media_id: 0
+  })
 
   let total: number = 0;
 
@@ -13,8 +18,28 @@ export function Carrinho(props: any) {
   }
 
   async function clearChartMovies() {
-    await clearChart('/list/8215623/clear?confirm=true');
+    await clearChart('/list/8215623/clear?confirm=true',setRemoveAll);
   }
+
+  async function removeOneMovieFromChart(){
+    removeOneMovie('/list/8215623/remove_item',remove, setRemove)
+  }
+
+  function removeOne(id: number){
+    setRemove({
+      media_id: id
+    })
+    
+  }
+  
+  useEffect(()=> {
+    if(remove.media_id !== undefined) {
+      removeOneMovieFromChart()
+      
+    }
+  }, [removeOne])
+
+  
 
   useEffect(() => {
     getChartMoviesList();
@@ -62,6 +87,8 @@ export function Carrinho(props: any) {
                     size={20}
                     weight="fill"
                     className="hover:text-red-500 cursor-pointer"
+                    onClick={() => removeOne(movie.id)}
+                    
                   />
                 </li>
               );

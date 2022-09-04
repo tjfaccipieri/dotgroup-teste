@@ -1,14 +1,28 @@
 import { Heart, HeartBreak, ShoppingCart, Star, Trash } from 'phosphor-react';
 import { useEffect, useState } from 'react';
-import { getFavMovies, postChartMovies, postFavMovie } from '../services/Service';
+import { toast } from 'react-toastify';
+import { getChartMovies, getFavMovies, postChartMovies, postFavMovie } from '../services/Service';
 
 export function Favoritos(props: any) {
   const [favs, setFavs] = useState<any[]>([]);
-  const [favorite, setFavorite] = useState({
+  const [removeFavorite, setRemoveFavorite] = useState({
     media_type: 'movie',
     media_id: 0,
     favorite: false
   })
+
+  const [movies, setMovies] = useState<any[]>([]);
+  let comprados: { index: any; }[] = []
+
+  function lista() {
+    movies.forEach((el) => {
+      comprados.push({index: el.id})
+    })
+  }
+
+  async function getChartMoviesList() {
+    await getChartMovies(`list/8215623`, setMovies);
+  }
 
   const [movieChart, setMovieChart] = useState({
     media_id: 0
@@ -16,18 +30,36 @@ export function Favoritos(props: any) {
 
   async function getFavMoviesList() {
     await getFavMovies(`/account/14512892/favorite/movies`, setFavs);
+    
   }
 
-  async function favMovie() {
-    await postFavMovie(`/account/14512892/favorite`, favorite, setFavorite)
+  async function removeFavMovie() {
+    try {
+      await postFavMovie(`/account/14512892/favorite`, removeFavorite, setRemoveFavorite) 
+    setMovieChart({
+      media_id: 0
+    }) 
+    } catch (error) {
+      
+    }
   }
 
   async function buyMovie() {
-    await postChartMovies(`/list/8215623/add_item`, movieChart, setMovieChart)
+    try {
+      await postChartMovies(`/list/8215623/add_item`, movieChart, setMovieChart)
+    setMovieChart({
+      media_id: 0
+    })
+    } catch (error) {
+        console.log('deu rium')
+        setMovieChart({
+          media_id: 0
+        })
+    }
   }
 
   function removeFavoriteMovie(id: number) {
-    setFavorite({
+    setRemoveFavorite({
       media_type: 'movie',
       media_id: id,
       favorite: false
@@ -35,19 +67,27 @@ export function Favoritos(props: any) {
   }
 
   useEffect(() => {
-    favMovie()
-  }, [favorite])
+    removeFavMovie()
+  }, [removeFavorite])
 
   function addMovieToBuyChart(id: number) {
     setMovieChart({
       media_id: id
     })
-    buyMovie()
+    
   }
 
   useEffect(() => {
+    if(movieChart.media_id !== 0) {
+      buyMovie()
+    }
+  }, [addMovieToBuyChart])
+
+
+  useEffect(() => {
     getFavMoviesList();
-  }, [props.isOpen, favMovie, favs.length]);
+    lista()
+  }, [props.isOpen, removeFavMovie, favs.length]);
 
   return (
     <>
@@ -80,6 +120,7 @@ export function Favoritos(props: any) {
                     className="hover:text-teal-600 cursor-pointer"
                     onClick={() => addMovieToBuyChart(fav.id)}
                   />
+                  
                   <HeartBreak
                     size={20}
                     weight="fill"

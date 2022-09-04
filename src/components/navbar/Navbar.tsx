@@ -12,6 +12,14 @@ export function Navbar(props: any) {
     await getChartMovies(`list/8215623`, setMovies);
   }
 
+  
+
+  let handleFilter = (event: any) => {
+    let lowerCase = event.target.value.toLowerCase()
+    props.setInputText(lowerCase)
+    console.log(lowerCase)
+  }
+
   useEffect(() => {
     getChartMoviesList();
   }, [ getChartMoviesList, movies.length]);
@@ -25,6 +33,7 @@ export function Navbar(props: any) {
         type="text"
         className="w-1/4 px-2 border rounded border-gray-500 hidden md:block"
         placeholder="Pesquisa"
+        onChange={handleFilter}
       />
       <div className="flex gap-8 text-gray-100">
         

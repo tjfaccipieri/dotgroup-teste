@@ -1,5 +1,7 @@
+import { AxiosError } from 'axios';
 import { Heart, Star } from 'phosphor-react';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import {
   getAllGenres,
   getFavMovies,
@@ -8,10 +10,10 @@ import {
   postFavMovie,
 } from '../services/Service';
 
-export function Home() {
+export function Home(props: any) {
   const [movies, setMovies] = useState<any[]>([]);
   const [genres, setGenres] = useState<any[]>([]);
-  const [favs, setFavs] = useState<any[]>([]);
+  // const [favs, setFavs] = useState<any[]>([]);
   const [favorite, setFavorite] = useState({
     media_type: 'movie',
     media_id: 0,
@@ -22,49 +24,81 @@ export function Home() {
     media_id: 0,
   });
 
-  let heart: string = '';
+  let filter: string = props.inputText
+  let vazio: boolean = false
 
   async function getMovies() {
     await getNewMovies(`/discover/movie`, setMovies);
   }
 
   async function getGenres() {
-    await getAllGenres(`/genre/movie/list?language=pt`, setGenres);
-  }
-
-  async function getFavMoviesList() {
-    await getFavMovies(`/account/14512892/favorite/movies`, setFavs);
+    await getAllGenres(`/genre/movie/list`, setGenres);
   }
 
   async function favMovie() {
-    await postFavMovie(`/account/14512892/favorite`, favorite, setFavorite);
+    await postFavMovie(`/account/14512892/favorite`, favorite, setFavorite)
+      setMovieChart({
+        media_id: 0
+      })
   }
 
   async function buyMovie() {
-    await postChartMovies(`/list/8215623/add_item`, movieChart, setMovieChart);
+    try {
+      await postChartMovies(`/list/8215623/add_item`, movieChart, setMovieChart);
+      toast.info('Produto adicionado ao carrinho!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'colored',
+        progress: undefined,
+        });
+    } catch (error) {
+      
+        toast.error('Produto adicionado ao carrinho!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: 'colored',
+          progress: undefined,
+          });
+      
+    }
   }
 
   function addFavoriteMovie(id: number) {
     setFavorite({
-      ...favorite,
       media_type: 'movie',
       media_id: id,
       favorite: true,
     });
+    
   }
 
   useEffect(() => {
-    favMovie();
+    if(favorite?.media_id !== 0){
+      favMovie();
+    }
   }, [addFavoriteMovie]);
 
   function addMovieToBuyChart(id: number) {
     setMovieChart({
       media_id: id,
     });
+    
   }
-
+  
   useEffect(() => {
-    buyMovie();
+    if(movieChart.media_id !== 0){
+      buyMovie();
+      console.log('tentou comprar')
+      // setMovieChart({media_id: 0})
+    }
   }, [addMovieToBuyChart]);
 
   useEffect(() => {
@@ -72,12 +106,26 @@ export function Home() {
     getGenres();
   }, [movies.length]);
 
+  const filteredList = movies.filter((elements) => {
+    if(filter === '') {
+      return elements
+    } else {
+      console.log(elements.title.toLowerCase().includes(filter))
+      if(elements === '') {
+        return vazio = true
+      }
+      return elements.title.toLowerCase().includes(filter)
+    }
+  })
+
   return (
+    
     <div className="flex gap-3 flex-wrap justify-evenly mx-auto container my-8">
-      {movies.map((movie) => {
+      <div className={`${vazio ? 'block' : 'hidden'}`}>Sorry...sem filmes</div>
+      {filteredList.map((movie) => {
         return (
           <div
-            className="border w-[80vw] sm:w-[50vw] md:w-[20vw] lg:w-1/5 rounded-xl relative overflow-hidden"
+            className="border w-[80vw] sm:w-[50vw] md:w-[40vw] lg:w-1/5 rounded-xl relative overflow-hidden"
             key={movie.id}
           >
             <div>
@@ -134,6 +182,8 @@ export function Home() {
           </div>
         );
       })}
+
+      
     </div>
   );
 }

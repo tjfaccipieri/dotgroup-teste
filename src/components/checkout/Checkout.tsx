@@ -1,36 +1,107 @@
 import { Link, useNavigate } from 'react-router-dom';
 import InputMask from 'react-input-mask';
-import { useState, useEffect } from 'react';
-import { getChartMovies, clearChart } from '../services/Service';
+import { useState, useEffect, ChangeEvent } from 'react';
+import {
+  getChartMovies,
+  clearChart,
+  removeOneMovie,
+} from '../services/Service';
 import { Trash } from 'phosphor-react';
 import useLocalStorage from 'react-use-localstorage';
 
 export function Checkout() {
   const [movies, setMovies] = useState<any[]>([]);
+  const [removeAll, setRemoveAll] = useState([]);
+  const [remove, setRemove] = useState<any>({
+    media_id: 0,
+  });
+  const [error, setError] = useState<boolean>();
 
-  function addStorage(){
-    movies.forEach(movie => {
-      movie.price = movie.popularity
-      movie.qtd = 1
-    })
-    localStorage.setItem('filmes', JSON.stringify(movies))
+  const [form, setForm] = useState({
+    nome: '',
+    cpf: '',
+    celular: '',
+    email: '',
+    cep: '',
+    endereco: '',
+    cidade: '',
+    estado: '',
+  });
+
+  function updateForm(e: ChangeEvent<HTMLInputElement>) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   }
-  addStorage()
-  let filmes = JSON.parse(localStorage.getItem('filmes') || '{}')
-  
+
+  let total: number = 0;
+
+  let validForm = true;
+
+  function isValidEmail(email: any) {
+    return /\S+@\S+\.\S+/.test(email);
+  }
+
+  const handleChange = (event: any) => {
+    if (!isValidEmail(event.target.value)) {
+      setError(true);
+      console.log(event.target.value);
+    } else {
+      setError(false);
+    }
+  };
+
+  if (
+    !form.nome ||
+    !form.cpf ||
+    !form.celular ||
+    !form.email ||
+    !form.cep ||
+    !form.cidade ||
+    !form.endereco ||
+    !form.estado
+  ) {
+    validForm = false;
+  }
+
+  // function addStorage(){
+  //   movies.forEach(movie => {
+  //     movie.price = movie.popularity
+  //     movie.qtd = 1
+  //   })
+  //   localStorage.setItem('filmes', JSON.stringify(movies))
+  // }
+  // addStorage()
+  // let filmes = JSON.parse(localStorage.getItem('filmes') || '{}')
+
   async function getChartMoviesList() {
     await getChartMovies(`list/8215623`, setMovies);
   }
 
   async function clearChartMovies() {
-    await clearChart('/list/8215623/clear?confirm=true');
+    await clearChart('/list/8215623/clear?confirm=true', setRemoveAll);
+  }
+
+  async function removeOneMovieFromChart() {
+    removeOneMovie('/list/8215623/remove_item', remove, setRemove);
+  }
+
+  function removeOne(id: number) {
+    setRemove({
+      media_id: id,
+    });
   }
 
   useEffect(() => {
+    if (remove.media_id !== undefined) {
+      removeOneMovieFromChart();
+    }
+  }, [removeOne]);
+
+  useEffect(() => {
     getChartMoviesList();
-    addStorage()
-  },[]);
-  console.log('oi')
+  }, [movies.length, removeOneMovieFromChart]);
 
   return (
     <div className="container mx-auto px-3 md:px-0">
@@ -44,6 +115,8 @@ export function Checkout() {
               className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
               placeholder="Nome Completo"
               required
+              name="nome"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
             />
             <div className="flex gap-4">
               <InputMask
@@ -51,6 +124,8 @@ export function Checkout() {
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="CPF"
                 mask={'999.999.999-99'}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+                name="cpf"
                 required
               />
               <InputMask
@@ -58,13 +133,22 @@ export function Checkout() {
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Celular"
                 mask={'(99)99999-9999'}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+                name="celular"
                 required
               />
             </div>
             <input
-              type="text"
-              className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
+              type="email"
+              className={`w-full rounded border-2  px-4 py-2 text-lg ${
+                error === true
+                  ? 'border-red-500 focus:outline-red-500'
+                  : 'border-slate-400'
+              }`}
               placeholder="E-mail"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+              onKeyUp={handleChange}
+              name="email"
               required
             />
             <div className="flex gap-4">
@@ -73,6 +157,8 @@ export function Checkout() {
                 className="w-2/5 rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="CEP"
                 mask={'99999-999'}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+                name="cep"
                 required
               />
               <input
@@ -80,6 +166,8 @@ export function Checkout() {
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Endereço"
                 required
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+                name="endereco"
               />
             </div>
             <div className="flex gap-4">
@@ -88,12 +176,16 @@ export function Checkout() {
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Cidade"
                 required
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+                name="cidade"
               />
               <input
                 type="text"
                 className="w-full rounded border-2 border-slate-400 px-4 py-2 text-lg"
                 placeholder="Estado"
                 required
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateForm(e)}
+                name="estado"
               />
             </div>
           </form>
@@ -134,14 +226,6 @@ export function Checkout() {
                     </thead>
                     <tbody>
                       {movies.map((movie: any) => {
-                        let price = parseFloat(movie.price) / 100;
-                        let subtotal = price * movie.qtd
-                        let qtd = 1
-
-                        function increase(){
-                          qtd = qtd + 1
-                          console.log(qtd)
-                        }
                         return (
                           <tr className="border-b" key={movie.id}>
                             <td className="whitespace-nowrap text-sm font-medium text-gray-900">
@@ -155,16 +239,14 @@ export function Checkout() {
                               <p className="truncate ">{movie.title}</p>
                             </td>
                             <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap flex gap-3">
-                              <button onClick={()=> qtd = qtd - 1}> - </button>
-                              <p>{qtd}</p>
-                              <button onClick={increase}>+</button>
+                              <p>1</p>
                             </td>
                             <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
                               <p className="font-bold">
                                 {new Intl.NumberFormat('pt-BR', {
                                   style: 'currency',
                                   currency: 'BRL',
-                                }).format(subtotal)}
+                                }).format(parseFloat(movie.popularity) / 100)}
                               </p>
                             </td>
                             <td>
@@ -172,6 +254,7 @@ export function Checkout() {
                                 size={20}
                                 weight="fill"
                                 className="hover:text-red-500 cursor-pointer"
+                                onClick={() => removeOne(movie.id)}
                               />
                             </td>
                           </tr>
@@ -183,9 +266,25 @@ export function Checkout() {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            className="px-6
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xl">Total:</p>
+              <p className="text-2xl font-semibold">
+                {movies.map((price) => {
+                  {
+                    total = total + parseFloat(price.popularity) / 100;
+                  }
+                  return <></>;
+                })}
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(total)}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="px-6
           py-2.5
           bg-indigo-700
           hover:bg-indigo-500
@@ -198,13 +297,16 @@ export function Checkout() {
           duration-150 ease-in-out
           rounded
           disabled:bg-indigo-400
+          
           "
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-            onClick={clearChartMovies}
-          >
-            Finalizar compra
-          </button>
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal"
+              disabled={!validForm}
+              onClick={clearChartMovies}
+            >
+              Finalizar compra
+            </button>
+          </div>
         </div>
       </div>
 
@@ -222,7 +324,7 @@ export function Checkout() {
                 className="text-xl font-medium leading-normal text-gray-800"
                 id="exampleModalLabel"
               >
-                Obrigado Nome de Usuario
+                Obrigado {form.nome}
               </h5>
               <button
                 type="button"
@@ -270,4 +372,3 @@ export function Checkout() {
 function shouldComponentUpdate() {
   throw new Error('Function not implemented.');
 }
-

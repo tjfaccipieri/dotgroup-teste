@@ -35,9 +35,14 @@ export const getChartMovies = async(url: string, setChart: any) => {
 export const postChartMovies = async(url: string, movie: any, setMovie: any) => {
   const response = await api.post(url, movie)
   setMovie(response.data)
-  console.log("🚀 ~ file: Service.ts ~ line 39 ~ postChartMovies ~ response.data", response.data)
 }
 
-export const clearChart = async(url: string) => {
+export const clearChart = async(url: string, setRemove: any) => {
   const response = await api.post(url)
+  setRemove(response.data)
+}
+
+export const removeOneMovie = async(url: string, remove: any, setRemove: any) => {
+  const response = await api.post(url, remove)
+  setRemove(response.data)
 }
