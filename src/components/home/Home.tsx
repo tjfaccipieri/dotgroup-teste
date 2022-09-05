@@ -40,6 +40,16 @@ export function Home(props: any) {
       setMovieChart({
         media_id: 0
       })
+      toast.info('Produto adicionado aos favoritos!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: 'colored',
+        progress: undefined,
+        });
   }
 
   async function buyMovie() {
@@ -56,18 +66,7 @@ export function Home(props: any) {
         progress: undefined,
         });
     } catch (error) {
-      
-        toast.error('Produto adicionado ao carrinho!', {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: 'colored',
-          progress: undefined,
-          });
-      
+      console.log(error)
     }
   }
 
@@ -131,7 +130,7 @@ export function Home(props: any) {
             <div>
               <Heart
                 size={32}
-                weight="regular"
+                weight="fill"
                 className="text-red-500 z-10 absolute right-2 top-2 cursor-pointer"
                 onClick={() => addFavoriteMovie(movie.id)}
               />
