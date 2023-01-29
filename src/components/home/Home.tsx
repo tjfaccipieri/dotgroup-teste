@@ -25,6 +25,7 @@ export function Home(props: any) {
   });
 
   let filter: string = props.inputText
+  console.log("🚀 ~ file: Home.tsx ~ line 28 ~ Home ~ filter", filter)  
   let vazio: boolean = false
 
   async function getMovies() {
@@ -186,3 +187,6 @@ export function Home(props: any) {
     </div>
   );
 }
+
+
+
